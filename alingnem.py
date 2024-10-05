@@ -7,9 +7,9 @@ import numpy as np
    # dist_coeffs = data['dist_coeffs']
 
 # Read the images
-img1 = cv2.imread('img3.jpeg')
-img2 = cv2.imread('img4.jpeg')
-keepPercent = 0.2
+img1 = cv2.imread('paired/frame21_modified2_swir.jpg')
+img2 = cv2.imread('paired/frame21_rgb.jpg')
+keepPercent = 0.8
 # Undistort images (optional, only if calibration data is available)
 #if 'camera_matrix' in locals() and 'dist_coeffs' in locals():
  #   img1 = cv2.undistort(img1, camera_matrix, dist_coeffs)

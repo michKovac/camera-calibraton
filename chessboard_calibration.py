@@ -3,6 +3,7 @@ import numpy as np
 import glob
 
 # Define the dimensions of the checkerboard
+image_path = 'chess_samples'
 checkerboard_size = (7, 8)
 square_size = 1.0  # Adjust based on your checkerboard square size
 
@@ -19,7 +20,7 @@ objpoints = []
 imgpoints = []
 
 # Load calibration images
-images = glob.glob('chess_samples/*.jpeg')
+images = glob.glob(image_path+'/*.jpeg')
 
 img_dimension =cv2.cvtColor(cv2.imread(images[0]), cv2.COLOR_BGR2GRAY).shape[::-1]
 
