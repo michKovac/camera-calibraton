@@ -31,8 +31,7 @@ def extract_images_from_bag(bag_file, output_dir, interval=1):
 
     bag.close()
 
-if __name__ == "__main__":
-    bag_file = '/home/michal/Documents/datacollections/cheesboard_collection.bag'
-    output_dir = '/home/michal/Documents/datacollections/extracted_images'
-    interval = 0.2  # Set the interval in seconds
-    extract_images_from_bag(bag_file, output_dir, interval)
+bag_file = '/home/michal/Documents/datacollections/cheesboard_collection.bag'
+output_dir = '/home/michal/Documents/datacollections/extracted_images'
+interval = 0.2  # Set the interval in seconds
+extract_images_from_bag(bag_file, output_dir, interval)

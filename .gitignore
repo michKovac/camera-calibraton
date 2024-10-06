@@ -2,7 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+# Data folders
+paired/
+chess_samples/
 # C extensions
 *.so
 
