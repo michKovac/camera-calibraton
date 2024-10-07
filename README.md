@@ -11,12 +11,12 @@ This project focuses on image preprocessing and calibration for a hyperspectral 
 - [License](#license)
 
 ## Introduction
-The goal of this project is to provide tools for calibrating and preprocessing images captured by hyperspectral SWIR and RGB cameras. Proper calibration and preprocessing are essential for accurate data analysis and image alignment.
+This project aims to provide tools for calibrating and preprocessing images captured by hyperspectral SWIR and RGB cameras. Proper calibration and preprocessing are essential for accurate data analysis and image alignment.
 
 ## Features
 - Image preprocessing for hyperspectral SWIR and RGB cameras
 - Camera calibration routines
-- Data collection tools
+- Data processing tools
 - Image alignment algorithms
 
 ## Installation
