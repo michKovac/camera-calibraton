@@ -5,6 +5,7 @@ __pycache__/
 # Data folders
 paired/
 chess_samples/
+result/
 # C extensions
 *.so
 
