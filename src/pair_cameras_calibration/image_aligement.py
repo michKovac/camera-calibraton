@@ -52,6 +52,48 @@ class ImageAlignment:
             data = pickle.load(f)
             self.homography_matrix = data['homography_matrix']
             self.calibrated = True
+    def __find_non_black_edge(self,img, axis, reverse=False):
+        if reverse:
+            img = np.flip(img, axis=axis)
+        for i in range(img.shape[axis]):
+            if axis == 0:
+                if np.any(img[i, :] > 0):
+                    return img.shape[axis] - i if reverse else i
+            else:
+                if np.any(img[:, i] > 0):
+                    return img.shape[axis] - i if reverse else i
+        return 0
+    
+    def __crop_black_borders(self,image):
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        # Find the first non-black pixel from each side
+        top = self.__find_non_black_edge(gray, axis=0)
+        bottom = self.__find_non_black_edge(gray, axis=0, reverse=True)
+        left = self.__find_non_black_edge(gray, axis=1)
+        right = self.__find_non_black_edge(gray, axis=1, reverse=True)
+
+        # Crop the image using the found edges
+        return image[top:bottom, left:right]
+    
+    def __crop_image_to_dimension(self, image, side, dimension):
+                """
+                Crop the image from the chosen side to the specified dimension.
+                
+                :param image: The image to be cropped.
+                :param side: The side from which to crop ('left', 'right', 'top', 'bottom').
+                :param dimension: The dimension to crop to.
+                :return: The cropped image.
+                """
+                if side == 'left':
+                    return image[:, :dimension]
+                elif side == 'right':
+                    return image[:, -dimension:]
+                elif side == 'top':
+                    return image[:dimension, :]
+                elif side == 'bottom':
+                    return image[-dimension:, :]
+                else:
+                    raise ValueError("Side must be one of 'left', 'right', 'top', 'bottom'")
 
     def calculate_homography(self, lowe_ratio=0.75):
         """
@@ -107,6 +149,11 @@ class ImageAlignment:
         if self.homography_matrix is not None:
             warped_swir = cv.warpPerspective(im_swir_grey, homography_mat, (im_rgb.shape[1], im_rgb.shape[0]))
             warped_swir = cv.cvtColor(warped_swir, cv.COLOR_GRAY2BGR)
-            return warped_swir, im_rgb
+            warped_swir = self.__crop_black_borders(warped_swir)
+            h, w = warped_swir.shape[:2]
+            croped_rgb = self.__crop_image_to_dimension(im_rgb, 'right', w)
+            croped_rgb = self.__crop_image_to_dimension(croped_rgb, 'bottom', h)
+            return warped_swir, croped_rgb
         else:
             raise ValueError('Homography matrix is not calculated')
+        
