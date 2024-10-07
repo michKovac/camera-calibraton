@@ -6,6 +6,33 @@ from tqdm import tqdm
 
 
 class CamCalibration:
+    """
+    A class used to perform camera calibration using a set of images of a checkerboard pattern.
+    Attributes
+    ----------
+    image_dir : str
+        Directory containing the calibration images.
+    savepath : str
+        Path to save the calibration parameters.
+    checkerboard_size : tuple
+        Size of the checkerboard (number of inner corners per a chessboard row and column).
+    square_size : float
+        Size of a square in your defined unit (point, millimeter, etc.).
+    print_results : bool
+        Flag to print and display the checkerboard corners on the images.
+    optimal_camera_matrix : np.ndarray
+        Optimal camera matrix after calibration.
+    actual_camera_matrix : np.ndarray
+        Actual camera matrix obtained from calibration.
+    dist_coeffs : np.ndarray
+        Distortion coefficients obtained from calibration.
+    image_roi : tuple
+        Region of interest in the image.
+    image_size : tuple
+        Size of the images used for calibration.
+    calibrated : bool
+        Flag indicating if the camera has been calibrated.
+    """
     def __init__(self, image_dir, savepath='camera_params', checkerboard_size =(7,8), square_size=2.0, print_chessboard=False, image_size=None, matrix_file_path=None):
         self.image_dir = image_dir
         self.checkerboard_size = checkerboard_size

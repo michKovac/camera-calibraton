@@ -1,12 +1,11 @@
 import cv2 as cv
 import numpy as np
 from src.pair_cameras_calibration.image_aligement import ImageAlignment
-import os
 
 ir_path = 'paired/calib_swir_camera_image_raw_1728031532351120217.png'
 rgb_path = 'paired/calib_camera_image_color_1728031532559420138.png'
-image_alignment = ImageAlignment(rgb_path, ir_path)
-image_alignment.calculate_homography(lowe_ratio=0.65)
+image_alignment = ImageAlignment(rgb_path, ir_path, homography_matrix='homography_matrix.pkl')
+#image_alignment.calculate_homography(lowe_ratio=0.65)
 aligned, rgb = image_alignment.align_images()
 
 
