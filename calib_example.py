@@ -64,6 +64,6 @@ def do_calibration(calib, images, camera='rgb', output='save'):
 
 camera = 'rgb'
 images = glob.glob(f'chess_samples/{camera}_cam/*.png')
-matrix_save_path = f'camera_{camera}_params.pkl'
+matrix_save_path = f'camera_{camera}_params'
 calib = CamCalibration(f'chess_samples/{camera}_cam', savepath=matrix_save_path)
 do_calibration(calib, images, output='show', camera='rgb')
