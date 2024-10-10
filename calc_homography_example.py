@@ -2,8 +2,8 @@ import cv2 as cv
 import numpy as np
 from src.pair_cameras_calibration.image_aligement import ImageAlignment
 
-ir_path = 'result_new/swir_calib/swir_image_000405.jpg'
-rgb_path = 'result_new/rgb_calib/rgb_image_000405.jpg'
+ir_path = 'result_new/swir_calib/swir_image_000144.jpg'
+rgb_path = 'result_new/rgb_calib/rgb_image_000144.jpg'
 image_alignment = ImageAlignment()
 hm = image_alignment.calculate_homography(rgb_path, ir_path,lowe_ratio=0.75)
 #hm = image_alignment.calculate_homography_chess()

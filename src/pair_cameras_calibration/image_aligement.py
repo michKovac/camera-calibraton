@@ -160,12 +160,12 @@ class ImageAlignment:
             #print(f'homography matrix: {homography_mat}')
             warped_swir = cv.warpPerspective(im_swir_grey, homography_mat, (im_rgb.shape[1], im_rgb.shape[0]))
             warped_swir = cv.cvtColor(warped_swir, cv.COLOR_GRAY2BGR)
-            warped_swir = self.__crop_black_borders(warped_swir)
+            #warped_swir = self.__crop_black_borders(warped_swir)
             # Resize the warped SWIR image by half
-            h, w = warped_swir.shape[:2]
-            croped_rgb = self.__crop_image_to_dimension(im_rgb, 'right', w)
-            croped_rgb = self.__crop_image_to_dimension(croped_rgb, 'bottom', h)
-            return warped_swir, croped_rgb
+            #h, w = warped_swir.shape[:2]
+            #croped_rgb = self.__crop_image_to_dimension(im_rgb, 'right', w)
+            #croped_rgb = self.__crop_image_to_dimension(croped_rgb, 'bottom', h)
+            return warped_swir, im_rgb
         else:
             raise ValueError('Homography matrix is not calculated')
         
