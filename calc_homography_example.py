@@ -2,8 +2,10 @@ import cv2 as cv
 import numpy as np
 from src.pair_cameras_calibration.image_aligement import ImageAlignment
 
-ir_path = 'result_new/swir_calib/swir_image_000144.jpg'
-rgb_path = 'result_new/rgb_calib/rgb_image_000144.jpg'
+#ir_path = 'result_latest_sel/swir_calib/swir_image_000025_1.jpg'
+#rgb_path = 'result_latest_sel/rgb_calib/rgb_image_000025_1.jpg'
+ir_path = '/home/michal/git/camera-calibraton/result_latest/data1/swir_calib/swir_image_000000.jpg'
+rgb_path = '/home/michal/git/camera-calibraton/result_latest/data1/rgb_calib/rgb_image_000000.jpg'
 image_alignment = ImageAlignment()
 hm = image_alignment.calculate_homography(rgb_path, ir_path,lowe_ratio=0.75)
 #hm = image_alignment.calculate_homography_chess()

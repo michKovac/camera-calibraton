@@ -28,7 +28,7 @@ def do_calibration(calib, images, camera='rgb', output='save'):
     Returns:
     None
     """
-    result_path = f'result_data1/{camera}_calib/'
+    result_path = f'result_latest/data12_0.005/{camera}_calib/'
     os.makedirs(result_path, exist_ok=True)
     calib.calibrate()
 
@@ -62,8 +62,8 @@ def do_calibration(calib, images, camera='rgb', output='save'):
             cv2.imwrite(f'{result_path}{image_name}.jpg', remapped_img)
     cv2.destroyAllWindows()
 
-camera = 'swir'
-images = glob.glob(f'/home/michal/Documents/datacollections/data1/{camera}/*.jpg')
+camera = 'rgb'
+images = glob.glob(f'/home/michal/Documents/datacollections/latest/data12_0.005/{camera}/*.jpg')
 matrix_save_path = f'camera_{camera}_params'
-calib = CamCalibration(f'/home/michal/Documents/datacollections/data1/{camera}', matrix_file_path='camera_swir_params.pkl')
+calib = CamCalibration(f'/home/michal/Documents/datacollections/latest/data12_0.005/{camera}', matrix_file_path='rgb_camera_params.pkl')
 do_calibration(calib, images, output='save', camera=camera)
