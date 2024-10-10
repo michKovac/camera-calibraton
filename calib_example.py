@@ -28,7 +28,7 @@ def do_calibration(calib, images, camera='rgb', output='save'):
     Returns:
     None
     """
-    result_path = f'result/{camera}_calib/'
+    result_path = f'result_data1/{camera}_calib/'
     os.makedirs(result_path, exist_ok=True)
     calib.calibrate()
 
@@ -59,11 +59,11 @@ def do_calibration(calib, images, camera='rgb', output='save'):
             cv2.imshow('Original | Undistorted | Remapped (Padded)', combined_img_padded)
             cv2.waitKey(0)
         elif output == 'save':
-            cv2.imwrite(f'{result_path}{image_name}.png', remapped_img)
+            cv2.imwrite(f'{result_path}{image_name}.jpg', remapped_img)
     cv2.destroyAllWindows()
 
-camera = 'rgb'
-images = glob.glob(f'chess_samples/{camera}_cam/*.png')
+camera = 'swir'
+images = glob.glob(f'/home/michal/Documents/datacollections/data1/{camera}/*.jpg')
 matrix_save_path = f'camera_{camera}_params'
-calib = CamCalibration(f'chess_samples/{camera}_cam', savepath=matrix_save_path)
-do_calibration(calib, images, output='show', camera='rgb')
+calib = CamCalibration(f'/home/michal/Documents/datacollections/data1/{camera}', matrix_file_path='camera_swir_params.pkl')
+do_calibration(calib, images, output='save', camera=camera)

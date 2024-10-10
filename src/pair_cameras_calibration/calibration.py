@@ -49,7 +49,7 @@ class CamCalibration:
         else:
             self.calibrated = False
         if image_size is None:
-            images = glob.glob(self.image_dir + '/*.png')
+            images = glob.glob(self.image_dir + '/*.jpg')
             if len(images) == 0:
                 raise ValueError("No images found in the specified directory.")
             img = cv2.imread(images[0])
@@ -72,7 +72,7 @@ class CamCalibration:
         imgpoints = []
 
         # Load calibration images
-        images = glob.glob(im_dir+'/*.png')
+        images = glob.glob(im_dir+'/*.jpg')
 
         img_dimension =cv2.cvtColor(cv2.imread(images[0]), cv2.COLOR_BGR2GRAY).shape[::-1]
         succ_found = 0
@@ -93,7 +93,7 @@ class CamCalibration:
                 if self.print_results:
                 # Draw and display the corners
                     cv2.drawChessboardCorners(img, check_size, corners2, ret)
-                    cv2.imshow(f'Checkerboard {succ_found}', cv2.resize(img, (img.shape[0]//2, img.shape[1]//2)))
+                    cv2.imshow(f'Checkerboard {succ_found}', cv2.resize(img, (img.shape[1]//2, img.shape[0]//2)))
                     cv2.waitKey(0)
         
         if self.print_results:
