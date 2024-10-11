@@ -37,7 +37,7 @@ Follow these steps to align images from two different cameras:
 0. **Preparation**: Choose at least 20 good images of a checkerboard from each camera for calibration. Ensure the images include different angles and distances.
 1. **Calibration**: Calculate the camera parameter matrix for each camera using the checkerboard images.
     ```bash
-    python calibration.py --path <checkerboard_images_folder> --outdir <calibration_results_path> --checkerboard_size 7 8 --square_size 2
+    python calibration.py --path <checkerboard_images_folder> --outdir <calibration_results_path>
     ```
 2. **Undistortion**: Use the calculated parameters to undistort images from both cameras.
     ```bash
