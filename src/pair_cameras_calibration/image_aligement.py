@@ -157,17 +157,33 @@ class ImageAlignment:
         im_rgb = cv.imread(path_im_rgb, cv.IMREAD_COLOR)
         im_swir_grey = cv.imread(path_swir_grey, cv.IMREAD_GRAYSCALE)
         if self.homography_matrix is not None:
-            #print(f'homography matrix: {homography_mat}')
             warped_swir = cv.warpPerspective(im_swir_grey, homography_mat, (im_rgb.shape[1], im_rgb.shape[0]))
             warped_swir = cv.cvtColor(warped_swir, cv.COLOR_GRAY2BGR)
-            #warped_swir = self.__crop_black_borders(warped_swir)
-            # Resize the warped SWIR image by half
-            #h, w = warped_swir.shape[:2]
-            #croped_rgb = self.__crop_image_to_dimension(im_rgb, 'right', w)
-            #croped_rgb = self.__crop_image_to_dimension(croped_rgb, 'bottom', h)
-            return warped_swir, im_rgb
+            cropped_warped_swir, cropped_im_rgb = self.__crop_to_intersection(warped_swir, im_rgb)
+            return cropped_warped_swir, cropped_im_rgb
+            #return warped_swir, im_rgb
         else:
             raise ValueError('Homography matrix is not calculated')
+
+    def __crop_to_intersection(self, warped_swir, im_rgb):
+        """
+        Crop the warped SWIR image and the RGB image to their intersection without black borders.
+        
+        :param warped_swir: The warped SWIR image.
+        :param im_rgb: The RGB image.
+        :return: The cropped warped SWIR image and the cropped RGB image.
+        """
+        # Find the first non-black pixel from each side for the warped SWIR image
+        top = self.__find_non_black_edge(warped_swir, axis=0)
+        bottom = self.__find_non_black_edge(warped_swir, axis=0, reverse=True)
+        left = self.__find_non_black_edge(warped_swir, axis=1)
+        right = self.__find_non_black_edge(warped_swir, axis=1, reverse=True)
+
+        # Crop the images using the found edges
+        cropped_warped_swir = warped_swir[top+20:bottom, left:right]
+        cropped_im_rgb = im_rgb[top+20:bottom, left:right]
+
+        return cropped_warped_swir, cropped_im_rgb
         
     def update_opacity(self,x, rgb_alin, swir_alin):
         alpha = x / 100
@@ -180,10 +196,12 @@ class ImageAlignment:
         blended = cv.addWeighted(rgb_alin_resized, alpha, swir_alin_resized, beta, 0)
         cv.imshow('Blended', blended)
         
-    def align_batch(self, swir_path, rgb_path, swir_alin_output_path, rgb_alin_output_path, homography_mat=None, show=True):
+    def align_batch(self, swir_path, rgb_path, output_path, homography_mat=None, show=False):
         if homography_mat is None:
             homography_mat = self.homography_matrix
         # Create output directories if they don't exist
+        swir_alin_output_path = output_path + '/swir'
+        rgb_alin_output_path = output_path + '/rgb'
         os.makedirs(swir_alin_output_path, exist_ok=True)
         os.makedirs(rgb_alin_output_path, exist_ok=True)
 
@@ -217,6 +235,8 @@ class ImageAlignment:
 
             cv.imwrite(swir_aligned_output_file, swir_alin)
             cv.imwrite(rgb_alin_output_file, rgb_alin)
+            if index % 100 == 0:
+                print(f"Processing image pair {index + 1} of {len(swir_images)}")
 
             if show:
                 opac = cv.getTrackbarPos('Opacity', 'Blended') 
@@ -235,4 +255,8 @@ class ImageAlignment:
                         exit()
                     opac = cv.getTrackbarPos('Opacity', 'Blended')
                     self.update_opacity(opac, rgb_alin, swir_alin)  # Update opacity on trackbar change
+            else:
+                index += 1
+                if index >= len(swir_images):
+                    break
             

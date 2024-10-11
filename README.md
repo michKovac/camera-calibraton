@@ -1,5 +1,4 @@
 # camera-calibraton# Camera Calibration and Image Preprocessing
-
 This project focuses on image preprocessing and calibration for a hyperspectral SWIR camera and an RGB camera. It includes data collection and image alignment functionalities.
 
 ## Table of Contents
@@ -7,6 +6,7 @@ This project focuses on image preprocessing and calibration for a hyperspectral 
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Image Alignment Pipeline](#image-alignment-pipeline)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -31,4 +31,30 @@ pip install -r requirements.txt
 3. **Preprocessing**: Apply preprocessing steps to the collected images.
 4. **Image Alignment**: Use the alignment algorithms to align images from both cameras.
 
+## Image Alignment Pipeline
+Follow these steps to align images from two different cameras:
+
+0. **Preparation**: Choose at least 20 good images of a checkerboard from each camera for calibration. Ensure the images include different angles and distances.
+1. **Calibration**: Calculate the camera parameter matrix for each camera using the checkerboard images.
+    ```bash
+    python calibration.py --path <checkerboard_images_folder> --outdir <calibration_results_path> --checkerboard_size 7 8 --square_size 2
+    ```
+2. **Undistortion**: Use the calculated parameters to undistort images from both cameras.
+    ```bash
+    python undistort.py --path <images_folder> --outdir <undistorted_images_folder> --matrix <camera_matrix_file>
+    ```
+3. **Homography Calculation**: Calculate the homography matrix from one pair of images from different cameras.
+    ```bash
+    python calculate_homography.py --swir <image_from_camera1> --rgb <image_from_camera2>
+    ```
+4. **Image Alignment**: Use the obtained homography matrix to align a batch of images from the two different cameras.
+    ```bash
+    python align_image.py --swir <images_folder_camera1> --rgb <images_folder_camera2> --output <aligned_images_folder> --homography <homography_matrix_file> --show
+    ```
+
+## Contributing
+Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
