@@ -50,8 +50,7 @@ Follow these steps to align images from two different cameras:
 4. **Image Alignment**: Use the obtained homography matrix to align a batch of images from the two different cameras.
     ```bash
     python align_images.py --swir <swir_images_folder> --rgb <rgb_images_folder> --output <aligned_images_folder> --homography <homography_matrix_file .pkl> --show 
-    ```
-    If you used the "--show" argument, you can navigate through all images by pressing 'a' (forward) and 'd' (backward).
+If you use the "--show" option, you can navigate through all images by pressing 'a' for forward and 'd' for backward. If you want to process all images without displaying them, please omit this option.
 
 ## Contributing
 Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
