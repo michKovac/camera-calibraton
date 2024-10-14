@@ -41,15 +41,15 @@ Follow these steps to align images from two different cameras:
     ```
 2. **Undistortion**: Use the calculated parameters to undistort images from both cameras.
     ```bash
-    python undistort.py --path <images_folder> --outdir <undistorted_images_folder> --matrix <camera_matrix_file>
+    python undistort.py --path <images_folder> --outdir <undistorted_images_folder> --matrix <camera_parameters_matrix_file .pkl>
     ```
 3. **Homography Calculation**: Calculate the homography matrix from one pair of images from different cameras.
     ```bash
-    python calculate_homography.py --swir <image_from_camera1> --rgb <image_from_camera2>
+    python calculate_homography.py --swir <swir_image_path .jpg> --rgb <rgb_image_path .jpg>
     ```
 4. **Image Alignment**: Use the obtained homography matrix to align a batch of images from the two different cameras.
     ```bash
-    python align_image.py --swir <images_folder_camera1> --rgb <images_folder_camera2> --output <aligned_images_folder> --homography <homography_matrix_file> --show
+    python align_images.py --swir <swir_images_folder> --rgb <rgb_images_folder> --output <aligned_images_folder> --homography <homography_matrix_file .pkl> --show 
     ```
 
 ## Contributing
