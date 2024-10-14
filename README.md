@@ -51,7 +51,7 @@ Follow these steps to align images from two different cameras:
     ```bash
     python align_images.py --swir <swir_images_folder> --rgb <rgb_images_folder> --output <aligned_images_folder> --homography <homography_matrix_file .pkl> --show 
     ```
-    If you you "--show" argumend, you can iterate trigh all images by pressing 'a' (forward) and 'd' (backward).
+    If you you "--show" argumend, you can iterate trough all images by pressing 'a' (forward) and 'd' (backward).
 
 ## Contributing
 Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
