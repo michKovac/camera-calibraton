@@ -9,5 +9,5 @@ rgb_alin_output_path = '/home/michal/git/camera-calibraton/result_latest/data12_
 matrix = 'homography_matrix_best.pkl'
 #matrix = 'homography_matrix.pkl'
 alingment = ImageAlignment(matrix)
-alingment.align_batch(swir_path, rgb_path, swir_alin_output_path, rgb_alin_output_path, show=True)
+alingment.align_batch(swir_path, rgb_path, swir_alin_output_path, rgb_alin_output_path, show=False)
 

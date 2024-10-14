@@ -2,6 +2,7 @@ import cv2 as cv
 import pickle
 import numpy as np
 import os
+import tqdm
 
 class ImageAlignment:
     def __init__(self, homography_matrix=None):
@@ -218,7 +219,8 @@ class ImageAlignment:
             cv.createTrackbar('Opacity', 'Blended', 0, 100, lambda x: self.update_opacity(x, rgb_alin, swir_alin))
 
         index = 0
-        
+        print('Starting image alignment...')
+        pbar = tqdm.tqdm(total=len(swir_images), desc='Processing images')
         while True:
             swir_image = swir_images[index]
             rgb_image = rgb_images[index]
@@ -235,8 +237,9 @@ class ImageAlignment:
 
             cv.imwrite(swir_aligned_output_file, swir_alin)
             cv.imwrite(rgb_alin_output_file, rgb_alin)
-            if index % 100 == 0:
-                print(f"Processing image pair {index + 1} of {len(swir_images)}")
+            pbar.update(1)
+            #if index % 100 == 0:
+            #    print(f"Processing image pair {index + 1} of {len(swir_images)}")
 
             if show:
                 opac = cv.getTrackbarPos('Opacity', 'Blended') 
@@ -259,4 +262,8 @@ class ImageAlignment:
                 index += 1
                 if index >= len(swir_images):
                     break
+        pbar.close()
+        print('Image alignment complete.')
+        print(f'Total number of processed images: {index}')
+        print(f'Aligned images saved to {output_path}')
             
