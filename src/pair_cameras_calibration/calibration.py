@@ -173,7 +173,7 @@ class CamCalibration:
             self.actual_camera_matrix = data['actual_camera_matrix']
             self.dist_coeffs = data['dist_coeffs']
             self.optimal_camera_matrix = data['optimal_camera_matrix']
-            self.image_dir = data['image_dir']
+            #self.image_dir = data['image_dir']
             self.checkerboard_size = data['checkerboard_size']  
             self.square_size = data['square_size']
             self.image_size = data['image_size']
