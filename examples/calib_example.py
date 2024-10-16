@@ -63,8 +63,8 @@ def do_calibration(calib, images, result_path, camera='rgb', output='save'):
     cv2.destroyAllWindows()
 
 camera = 'rgb'
-result_path = f'result_latest/data12_0.005/{camera}_calib/'
-images = glob.glob(f'/home/michal/Documents/datacollections/latest/data12_0.005/{camera}/*.jpg')
+result_path = f'test/{camera}_calib/'
+images = glob.glob(f'/home/michal/Documents/datacollections/latest/selected_calibration/{camera}/*.jpg')
 matrix_save_path = f'camera_{camera}_params'
-calib = CamCalibration(f'/home/michal/Documents/datacollections/latest/data12_0.005/{camera}', matrix_file_path='rgb_camera_params.pkl')
-do_calibration(calib, images, output='save', camera=camera)
+calib = CamCalibration(f'/home/michal/Documents/datacollections/latest/selected_calibration/{camera}', print_chessboard=True)
+do_calibration(calib, images, output='save', camera=camera, result_path=result_path)

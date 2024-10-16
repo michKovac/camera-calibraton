@@ -26,7 +26,7 @@ if __name__ == "__main__":
     result_path = args.outdir
     matrix_file_path = args.matrix
 
-    images = glob.glob(f'{images_path}/*.jpg')
+    images = glob.glob(f'{images_path}/*.jpg') + glob.glob(f'{images_path}/*.png')
 
     calib = CamCalibration(images_path, matrix_file_path=matrix_file_path)
     do_calibration(calib, images, result_path)

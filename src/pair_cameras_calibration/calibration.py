@@ -49,7 +49,7 @@ class CamCalibration:
         else:
             self.calibrated = False
         if image_size is None:
-            images = glob.glob(self.image_dir + '/*.jpg')
+            images = glob.glob(self.image_dir + '/*.png') + glob.glob(self.image_dir + '/*.jpg')
             if len(images) == 0:
                 raise ValueError("No images found in the specified directory.")
             img = cv2.imread(images[0])
@@ -72,7 +72,7 @@ class CamCalibration:
         imgpoints = []
 
         # Load calibration images
-        images = glob.glob(im_dir+'/*.jpg')
+        images = glob.glob(im_dir+'/*.jpg') + glob.glob(im_dir+'/*.png')
 
         img_dimension =cv2.cvtColor(cv2.imread(images[0]), cv2.COLOR_BGR2GRAY).shape[::-1]
         succ_found = 0
