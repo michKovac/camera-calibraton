@@ -54,37 +54,6 @@ class ImageAlignment:
                 if np.any(img[:, i] > 0):
                     return img.shape[axis] - i if reverse else i
         return 0
-    
-    def __crop_black_borders(self,image):
-        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-        # Find the first non-black pixel from each side
-        top = self.__find_non_black_edge(gray, axis=0)
-        bottom = self.__find_non_black_edge(gray, axis=0, reverse=True)
-        left = self.__find_non_black_edge(gray, axis=1)
-        right = self.__find_non_black_edge(gray, axis=1, reverse=True)
-
-        # Crop the image using the found edges
-        return image[top:bottom, left:right]
-    
-    def __crop_image_to_dimension(self, image, side, dimension):
-                """
-                Crop the image from the chosen side to the specified dimension.
-                
-                :param image: The image to be cropped.
-                :param side: The side from which to crop ('left', 'right', 'top', 'bottom').
-                :param dimension: The dimension to crop to.
-                :return: The cropped image.
-                """
-                if side == 'left':
-                    return image[:, :dimension]
-                elif side == 'right':
-                    return image[:, -dimension:]
-                elif side == 'top':
-                    return image[:dimension, :]
-                elif side == 'bottom':
-                    return image[-dimension:, :]
-                else:
-                    raise ValueError("Side must be one of 'left', 'right', 'top', 'bottom'")
 
     def calculate_homography(self,image_path_rgb, image_path_swir, lowe_ratio=0.75):
         """
@@ -181,8 +150,8 @@ class ImageAlignment:
         right = self.__find_non_black_edge(warped_swir, axis=1, reverse=True)
 
         # Crop the images using the found edges
-        cropped_warped_swir = warped_swir[top+20:bottom, left:right]
-        cropped_im_rgb = im_rgb[top+20:bottom, left:right]
+        cropped_warped_swir = warped_swir[top:bottom, left:right]
+        cropped_im_rgb = im_rgb[top:bottom, left:right]
 
         return cropped_warped_swir, cropped_im_rgb
         
@@ -190,8 +159,8 @@ class ImageAlignment:
         alpha = x / 100
         beta = 1 - alpha
         # Resize the images by half
-        rgb_alin_resized = cv.resize(rgb_alin, (rgb_alin.shape[1] // 2, rgb_alin.shape[0] // 2))
-        swir_alin_resized = cv.resize(swir_alin, (swir_alin.shape[1] // 2, swir_alin.shape[0] // 2))
+        rgb_alin_resized = cv.resize(rgb_alin, (rgb_alin.shape[1] // 1, rgb_alin.shape[0] // 1))
+        swir_alin_resized = cv.resize(swir_alin, (swir_alin.shape[1] //1, swir_alin.shape[0] // 1))
         
         # Blend the resized images
         blended = cv.addWeighted(rgb_alin_resized, alpha, swir_alin_resized, beta, 0)
