@@ -4,8 +4,8 @@ from src.pair_cameras_calibration.image_aligement import ImageAlignment
 
 #ir_path = 'result_latest_sel/swir_calib/swir_image_000025_1.jpg'
 #rgb_path = 'result_latest_sel/rgb_calib/rgb_image_000025_1.jpg'
-ir_path = '/home/michal/Documents/datacollections/1019/undistordted_swir/data2/swir_image_000786.jpg'
-rgb_path = '/home/michal/Documents/datacollections/1019/undistordted_rgb/data2/rgb_image_000786.jpg'
+ir_path = '/media/share/Dataset/swir_dataset/collect/1128_aftersnow/calibration_und/swir/swir_image_001420.jpg'
+rgb_path = '/media/share/Dataset/swir_dataset/collect/1128_aftersnow/calibration_und/rgb/rgb_image_001420.jpg'
 image_alignment = ImageAlignment()
 hm = image_alignment.calculate_homography(rgb_path, ir_path,lowe_ratio=0.75)
 #hm = image_alignment.calculate_homography_chess()
