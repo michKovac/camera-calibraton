@@ -55,7 +55,7 @@ Follow these steps to align images from two different cameras:
     ```
     If you use the "--show" option, you can navigate through all images by pressing 'a' for forward and 'd' for backward. If you want to process all images without displaying them, please omit this option.
 
-## Batch Undistortion
+## Collection Undistortion
 Use the `undistort_collection.py` script to undistort a batch of images from multiple data directories.
 
 ### Usage
@@ -75,7 +75,7 @@ In the data collection base directory, there should be folders named `data1`, `d
 
 Example structure:
 ```
-<base_dataset_path>/
+<base_path>/
     ├── data1/
     │   ├── rgb/
     │   └── swir/
@@ -86,7 +86,7 @@ Example structure:
         ├── rgb/
         └── swir/
 ```
-## Batch Alignment
+## Collection Alignment
 Use the `align_collection.py` script to align a batch of images from multiple data directories.
 
 ### Usage
@@ -105,7 +105,7 @@ In the data collection base directory, there should be folders named `data1_und`
 
 Example structure:
 ```
-<base_dataset_path>/
+<base_path>/
     ├── data1_und/
     │   ├── rgb/
     │   └── swir/
