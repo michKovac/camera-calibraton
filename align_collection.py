@@ -35,8 +35,8 @@ def main(base_path, matrix_file_rgb, matrix_file_nir=None, start=1, end=29):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Align images using homography matrix.")
     parser.add_argument("--base_path", required=True, help="Base path where all collected images are stored.")
-    parser.add_argument("--matrix_file_rgb", required=True, help="Path to the RGB-SWIR homography matrix file.")
-    parser.add_argument("--matrix_file_nir", help="Path to the NIR-SWIR homography matrix file (optional).")
+    parser.add_argument("--h_swir_rgb", required=True, help="Path to the SWIR-RGB homography matrix file.")
+    parser.add_argument("--h_nir_rgb", help="Path to the NIR-RGB homography matrix file (optional).")
     parser.add_argument("--start", type=int, default=1, help="Start of the range for data iteration.")
     parser.add_argument("--end", type=int, default=29, help="End of the range for data iteration.")
 
