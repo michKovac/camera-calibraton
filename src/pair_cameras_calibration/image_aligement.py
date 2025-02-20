@@ -5,33 +5,27 @@ import os
 import tqdm
 
 class ImageAlignment:
-    def __init__(self, homography_matrix=None):
+    def __init__(self, homography_matrix=None, homography_matrix_nir=None):
         """
-        Initialize the ImageAlignment class with paths to RGB and SWIR images and an optional homography matrix.
+        Initialize with optional homography matrices for RGB-SWIR and NIR-SWIR alignment.
         
-        :param image_path_rgb: Path to the RGB image.
-        :param image_path_swir: Path to the SWIR image.
-        :param homography_matrix: Optional precomputed homography matrix.
+        :param homography_matrix: Optional precomputed RGB-SWIR homography matrix
+        :param homography_matrix_nir: Optional precomputed NIR-SWIR homography matrix
         """
         self.descriptor = cv.SIFT.create()
         self.matcher = cv.FlannBasedMatcher()
         
-        # Load homography matrix if provided
         if homography_matrix is not None:
             self.__load(homography_matrix)
-        else:
-            print('need to calcutale homography')
-    
-    def __save(self, filename):
-        """
-        Save the homography matrix to a file.
-        
-        :param filename: The name of the file to save the homography matrix.
-        """
+        if homography_matrix_nir is not None:
+            self.__load_nir(homography_matrix_nir)
+
+    def __save(self, filename, is_nir=False):
         with open(filename, 'wb') as f:
-            pickle.dump({
-                'homography_matrix': self.homography_matrix
-            }, f)
+            data = {
+                'homography_matrix': self.homography_matrix_nir if is_nir else self.homography_matrix
+            }
+            pickle.dump(data, f)
 
     def __load(self, filename):
         """
@@ -43,6 +37,12 @@ class ImageAlignment:
             data = pickle.load(f)
             self.homography_matrix = data['homography_matrix']
             self.calibrated = True
+
+    def __load_nir(self, filename):
+        with open(filename, 'rb') as f:
+            data = pickle.load(f)
+            self.homography_matrix_nir = data['homography_matrix']
+
     def __find_non_black_edge(self,img, axis, reverse=False):
         if reverse:
             img = np.flip(img, axis=axis)
@@ -55,18 +55,35 @@ class ImageAlignment:
                     return img.shape[axis] - i if reverse else i
         return 0
 
-    def calculate_homography(self,image_path_rgb, image_path_swir, lowe_ratio=0.75):
+    def calculate_homography(self, image_path_rgb, image_path_swir, image_path_nir=None, lowe_ratio=0.75):
         """
-        Calculate the homography matrix using feature matching.
+        Calculate homography matrices for RGB-SWIR and optionally NIR-SWIR alignment.
         
-        :param lowe_ratio: The ratio for Lowe's ratio test to filter matches.
-        :return: The computed homography matrix.
+        :param image_path_rgb: Path to RGB image
+        :param image_path_swir: Path to SWIR image
+        :param image_path_nir: Optional path to NIR image
+        :return: Tuple of homography matrices (rgb_swir_matrix, nir_swir_matrix)
         """
-        image_rgb = cv.imread(image_path_rgb, cv.IMREAD_COLOR)
-        image_swir = cv.imread(image_path_swir)
-        image_rgb_gray = cv.cvtColor(image_rgb, cv.COLOR_BGR2GRAY)
-        image_swir_gray = cv.imread(image_path_swir, cv.IMREAD_GRAYSCALE)
+        # Calculate RGB-SWIR homography
+        rgb_swir_matrix = self._calculate_single_homography(image_path_rgb, image_path_swir, lowe_ratio)
+        self.homography_matrix = rgb_swir_matrix
+        self.__save('homography_matrix_rgb.pkl')
 
+        # Calculate NIR-SWIR homography if NIR image provided
+        nir_swir_matrix = None
+        if image_path_nir:
+            nir_swir_matrix = self._calculate_single_homography(image_path_nir, image_path_swir, lowe_ratio)
+            self.homography_matrix_nir = nir_swir_matrix
+            self.__save('homography_matrix_nir.pkl', is_nir=True)
+
+        return rgb_swir_matrix, nir_swir_matrix
+
+    def _calculate_single_homography(self, source_path, target_path, lowe_ratio):
+        """Helper method to calculate homography between two images"""
+        image_rgb = cv.imread(source_path, cv.IMREAD_COLOR)
+        image_swir = cv.imread(target_path)
+        image_rgb_gray = cv.cvtColor(image_rgb, cv.COLOR_BGR2GRAY)
+        image_swir_gray = cv.imread(target_path, cv.IMREAD_GRAYSCALE)
 
         kps_swir, desc_swir = self.descriptor.detectAndCompute(image_swir_gray, mask=None)
         kps_rgb, desc_rgb = self.descriptor.detectAndCompute(image_rgb_gray, mask=None)
@@ -91,11 +108,11 @@ class ImageAlignment:
         
         # Compute homography if enough matches are found
         if len(matches) > 4:
-            self.homography_matrix, _ = cv.estimateAffine2D(pts_swir, pts_rgb)
-            self.homography_matrix = np.vstack((self.homography_matrix, [0, 0, 1]))
-            self.__save('homography_matrix.pkl')
-        return self.homography_matrix
-    
+            homography_matrix, _ = cv.estimateAffine2D(pts_swir, pts_rgb)
+            homography_matrix = np.vstack((homography_matrix, [0, 0, 1]))
+            return homography_matrix
+        return None
+
     def calculate_homography_chess(self, image_path_rgb, image_path_swir):
         """
         Calculate the homography matrix using feature matching.
@@ -113,27 +130,30 @@ class ImageAlignment:
         self.__save('chess_homography_matrix.pkl')
         return self.homography_matrix
     
-    def align_images(self, path_swir_grey, path_im_rgb, homography_mat=None):
+    def align_images(self, path_swir, path_rgb, path_nir=None, homography_mat_rgb=None, homography_mat_nir=None):
         """
-        Align the SWIR image to the RGB image using the homography matrix.
+        Align RGB and optionally NIR images to SWIR image.
         
-        :param im_swir_grey: Optional SWIR image in grayscale.
-        :param im_rgb: Optional RGB image.
-        :param homography_mat: Optional homography matrix.
-        :return: The aligned SWIR image and the original RGB image.
+        :return: Tuple of (aligned_rgb, aligned_nir, original_swir) or (aligned_rgb, original_swir)
         """
-        if homography_mat is None:
-            homography_mat = self.homography_matrix
-        im_rgb = cv.imread(path_im_rgb, cv.IMREAD_COLOR)
-        im_swir_grey = cv.imread(path_swir_grey, cv.IMREAD_GRAYSCALE)
-        if self.homography_matrix is not None:
-            warped_swir = cv.warpPerspective(im_swir_grey, homography_mat, (im_rgb.shape[1], im_rgb.shape[0]))
-            warped_swir = cv.cvtColor(warped_swir, cv.COLOR_GRAY2BGR)
-            cropped_warped_swir, cropped_im_rgb = self.__crop_to_intersection(warped_swir, im_rgb)
-            return cropped_warped_swir, cropped_im_rgb
-            #return warped_swir, im_rgb
-        else:
-            raise ValueError('Homography matrix is not calculated')
+        if homography_mat_rgb is None:
+            homography_mat_rgb = self.homography_matrix
+
+        swir_img = cv.imread(path_swir, cv.IMREAD_COLOR)
+        rgb_img = cv.imread(path_rgb, cv.IMREAD_COLOR)
+        
+        warped_rgb = cv.warpPerspective(rgb_img, homography_mat_rgb, (swir_img.shape[1], swir_img.shape[0]))
+        
+        if path_nir and homography_mat_nir is not None:
+            nir_img = cv.imread(path_nir, cv.IMREAD_COLOR)
+            warped_nir = cv.warpPerspective(nir_img, homography_mat_nir, (swir_img.shape[1], swir_img.shape[0]))
+            cropped_warped_rgb, cropped_warped_nir, cropped_swir = self.__crop_to_intersection_three(
+                warped_rgb, warped_nir, swir_img
+            )
+            return cropped_warped_rgb, cropped_warped_nir, cropped_swir
+        
+        cropped_warped_rgb, cropped_swir = self.__crop_to_intersection(warped_rgb, swir_img)
+        return cropped_warped_rgb, cropped_swir
 
     def __crop_to_intersection(self, warped_swir, im_rgb):
         """
@@ -154,6 +174,32 @@ class ImageAlignment:
         cropped_im_rgb = im_rgb[top:bottom, left:right]
 
         return cropped_warped_swir, cropped_im_rgb
+
+    def __crop_to_intersection_three(self, warped_rgb, warped_nir, swir):
+        """Crop three images to their intersection"""
+        # Find the non-black regions in both warped images
+        top = max(
+            self.__find_non_black_edge(warped_rgb, axis=0),
+            self.__find_non_black_edge(warped_nir, axis=0)
+        )
+        bottom = min(
+            self.__find_non_black_edge(warped_rgb, axis=0, reverse=True),
+            self.__find_non_black_edge(warped_nir, axis=0, reverse=True)
+        )
+        left = max(
+            self.__find_non_black_edge(warped_rgb, axis=1),
+            self.__find_non_black_edge(warped_nir, axis=1)
+        )
+        right = min(
+            self.__find_non_black_edge(warped_rgb, axis=1, reverse=True),
+            self.__find_non_black_edge(warped_nir, axis=1, reverse=True)
+        )
+
+        return (
+            warped_rgb[top:bottom, left:right],
+            warped_nir[top:bottom, left:right],
+            swir[top:bottom, left:right]
+        )
         
     def update_opacity(self,x, rgb_alin, swir_alin):
         alpha = x / 100
