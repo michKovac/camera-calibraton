@@ -67,14 +67,14 @@ class ImageAlignment:
         # Calculate RGB-SWIR homography
         swir_rgb_matrix = self._calculate_single_homography(image_path_rgb, image_path_swir, lowe_ratio)
         self.homography_matrix = swir_rgb_matrix
-        self.__save('homography_matrix_swir_rgb.pkl')
+        self.__save('h_swir_rgb.pkl')
 
         # Calculate NIR-SWIR homography if NIR image provided
         nir_rgb_matrix = None
         if image_path_nir:
             nir_rgb_matrix = self._calculate_single_homography(image_path_nir, image_path_swir, lowe_ratio)
             self.homography_matrix_nir = nir_rgb_matrix
-            self.__save('homography_matrix_nir_rgb.pkl', is_nir=True)
+            self.__save('h_nir_rgb.pkl', is_nir=True)
 
         return swir_rgb_matrix, nir_rgb_matrix
 

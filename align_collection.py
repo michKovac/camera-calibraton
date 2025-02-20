@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--end", type=int, default=29, help="End of the range for data iteration.")
 
     args = parser.parse_args()
-    main(args.base_path, args.matrix_file_rgb, args.matrix_file_nir, args.start, args.end)
+    main(args.base_path, args.h_swir_rgb, args.h_nir_rgb, args.start, args.end)
 
 
     
