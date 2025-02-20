@@ -139,21 +139,39 @@ class ImageAlignment:
         if homography_mat_rgb is None:
             homography_mat_rgb = self.homography_matrix
 
+        # Load NIR homography matrix if not provided
+        if homography_mat_nir is None:
+            homography_mat_nir = self.homography_matrix_nir
+
+        # Read the images
         swir_img = cv.imread(path_swir, cv.IMREAD_COLOR)
         rgb_img = cv.imread(path_rgb, cv.IMREAD_COLOR)
-        
-        warped_rgb = cv.warpPerspective(rgb_img, homography_mat_rgb, (swir_img.shape[1], swir_img.shape[0]))
-        
+
+        # Warp the SWIR image to RGB perspective
+        warped_swir = cv.warpPerspective(swir_img, homography_mat_rgb, (rgb_img.shape[1], rgb_img.shape[0]))
+        # Convert to BGR if necessary (assuming SWIR is in grayscale)
+        warped_swir = cv.cvtColor(warped_swir, cv.COLOR_BGR2GRAY)
+        warped_swir = cv.cvtColor(warped_swir, cv.COLOR_GRAY2BGR)
+
         if path_nir and homography_mat_nir is not None:
             nir_img = cv.imread(path_nir, cv.IMREAD_COLOR)
-            warped_nir = cv.warpPerspective(nir_img, homography_mat_nir, (swir_img.shape[1], swir_img.shape[0]))
-            cropped_warped_rgb, cropped_warped_nir, cropped_swir = self.__crop_to_intersection_three(
-                warped_rgb, warped_nir, swir_img
-            )
-            return cropped_warped_rgb, cropped_warped_nir, cropped_swir
-        
-        cropped_warped_rgb, cropped_swir = self.__crop_to_intersection(warped_rgb, swir_img)
-        return cropped_warped_rgb, cropped_swir
+            # Warp the NIR image to RGB perspective
+            warped_nir = cv.warpPerspective(nir_img, homography_mat_nir, (rgb_img.shape[1], rgb_img.shape[0]))
+            # Convert to BGR if necessary
+            warped_nir = cv.cvtColor(warped_nir, cv.COLOR_BGR2GRAY)
+            warped_nir = cv.cvtColor(warped_nir, cv.COLOR_GRAY2BGR)
+
+            # Crop the images to their intersection
+            #cropped_warped_swir, cropped_im_rgb = self.__crop_to_intersection(warped_swir, rgb_img)
+            #cropped_warped_nir, _ = self.__crop_to_intersection(warped_nir, rgb_img)
+            cropped_warped_swir, cropped_warped_nir, cropped_im_rgb = self.__crop_to_intersection_three(warped_swir, warped_nir, rgb_img)
+
+
+            return cropped_im_rgb, cropped_warped_nir, cropped_warped_swir  # Return aligned images
+
+        # If NIR is not provided, just return the cropped SWIR and RGB images
+        cropped_warped_swir, cropped_im_rgb = self.__crop_to_intersection(warped_swir, rgb_img)
+        return cropped_im_rgb, cropped_warped_swir
 
     def __crop_to_intersection(self, warped_swir, im_rgb):
         """
@@ -175,30 +193,30 @@ class ImageAlignment:
 
         return cropped_warped_swir, cropped_im_rgb
 
-    def __crop_to_intersection_three(self, warped_rgb, warped_nir, swir):
+    def __crop_to_intersection_three(self, warped_swir, warped_nir, rgb):
         """Crop three images to their intersection"""
         # Find the non-black regions in both warped images
         top = max(
-            self.__find_non_black_edge(warped_rgb, axis=0),
+            self.__find_non_black_edge(warped_swir, axis=0),
             self.__find_non_black_edge(warped_nir, axis=0)
         )
         bottom = min(
-            self.__find_non_black_edge(warped_rgb, axis=0, reverse=True),
+            self.__find_non_black_edge(warped_swir, axis=0, reverse=True),
             self.__find_non_black_edge(warped_nir, axis=0, reverse=True)
         )
         left = max(
-            self.__find_non_black_edge(warped_rgb, axis=1),
+            self.__find_non_black_edge(warped_swir, axis=1),
             self.__find_non_black_edge(warped_nir, axis=1)
         )
         right = min(
-            self.__find_non_black_edge(warped_rgb, axis=1, reverse=True),
+            self.__find_non_black_edge(warped_swir, axis=1, reverse=True),
             self.__find_non_black_edge(warped_nir, axis=1, reverse=True)
         )
 
         return (
-            warped_rgb[top:bottom, left:right],
+            warped_swir[top:bottom, left:right],
             warped_nir[top:bottom, left:right],
-            swir[top:bottom, left:right]
+            rgb[top:bottom, left:right]
         )
         
     def update_opacity(self,x, rgb_alin, swir_alin):
