@@ -65,18 +65,18 @@ class ImageAlignment:
         :return: Tuple of homography matrices (rgb_swir_matrix, nir_swir_matrix)
         """
         # Calculate RGB-SWIR homography
-        rgb_swir_matrix = self._calculate_single_homography(image_path_rgb, image_path_swir, lowe_ratio)
-        self.homography_matrix = rgb_swir_matrix
+        swir_rgb_matrix = self._calculate_single_homography(image_path_rgb, image_path_swir, lowe_ratio)
+        self.homography_matrix = swir_rgb_matrix
         self.__save('homography_matrix_rgb.pkl')
 
         # Calculate NIR-SWIR homography if NIR image provided
-        nir_swir_matrix = None
+        nir_rgb_matrix = None
         if image_path_nir:
-            nir_swir_matrix = self._calculate_single_homography(image_path_nir, image_path_swir, lowe_ratio)
-            self.homography_matrix_nir = nir_swir_matrix
+            nir_rgb_matrix = self._calculate_single_homography(image_path_nir, image_path_swir, lowe_ratio)
+            self.homography_matrix_nir = nir_rgb_matrix
             self.__save('homography_matrix_nir.pkl', is_nir=True)
 
-        return rgb_swir_matrix, nir_swir_matrix
+        return swir_rgb_matrix, nir_rgb_matrix
 
     def _calculate_single_homography(self, source_path, target_path, lowe_ratio):
         """Helper method to calculate homography between two images"""
@@ -108,8 +108,9 @@ class ImageAlignment:
         
         # Compute homography if enough matches are found
         if len(matches) > 4:
-            homography_matrix, _ = cv.estimateAffine2D(pts_swir, pts_rgb)
-            homography_matrix = np.vstack((homography_matrix, [0, 0, 1]))
+            #homography_matrix, _ = cv.estimateAffine2D(pts_swir, pts_rgb)
+            #homography_matrix = np.vstack((homography_matrix, [0, 0, 1]))
+            homography_matrix, _ = cv.findHomography(pts_swir, pts_rgb, cv.RANSAC, 3.0)
             return homography_matrix
         return None
 
@@ -156,7 +157,9 @@ class ImageAlignment:
         if path_nir and homography_mat_nir is not None:
             nir_img = cv.imread(path_nir, cv.IMREAD_COLOR)
             # Warp the NIR image to RGB perspective
-            warped_nir = cv.warpPerspective(nir_img, homography_mat_nir, (rgb_img.shape[1], rgb_img.shape[0]))
+            nir_img = cv.imread(path_nir, cv.IMREAD_COLOR)
+            nir_img = cv.resize(nir_img, (rgb_img.shape[1], rgb_img.shape[0]))
+            warped_nir = cv.warpPerspective(nir_img, homography_mat_nir, (rgb_img.shape[1], rgb_img.shape[0]), flags=cv.INTER_LINEAR)
             # Convert to BGR if necessary
             warped_nir = cv.cvtColor(warped_nir, cv.COLOR_BGR2GRAY)
             warped_nir = cv.cvtColor(warped_nir, cv.COLOR_GRAY2BGR)
@@ -230,24 +233,31 @@ class ImageAlignment:
         blended = cv.addWeighted(rgb_alin_resized, alpha, swir_alin_resized, beta, 0)
         cv.imshow('Blended', blended)
         
-    def align_batch(self, swir_path, rgb_path, output_path, homography_mat=None, show=False):
+    def align_batch(self, swir_path, rgb_path, nir_path=None, output_path="aligned", homography_mat=None, show=False):
         if homography_mat is None:
             homography_mat = self.homography_matrix
+
         # Create output directories if they don't exist
-        swir_alin_output_path = output_path + '/swir'
-        rgb_alin_output_path = output_path + '/rgb'
+        swir_alin_output_path = os.path.join(output_path, 'swir')
+        rgb_alin_output_path = os.path.join(output_path, 'rgb')
+        nir_alin_output_path = os.path.join(output_path, 'nir') if nir_path else None
         os.makedirs(swir_alin_output_path, exist_ok=True)
         os.makedirs(rgb_alin_output_path, exist_ok=True)
+        if nir_alin_output_path:
+            os.makedirs(nir_alin_output_path, exist_ok=True)
 
         # List all images in the directories
         swir_images = sorted([f for f in os.listdir(swir_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
         rgb_images = sorted([f for f in os.listdir(rgb_path) if f.endswith(('.png', '.jpg', '.jpeg'))])
+        nir_images = sorted([f for f in os.listdir(nir_path) if f.endswith(('.png', '.jpg', '.jpeg'))]) if nir_path else []
 
         # Ensure both directories have the same number of images
         if len(swir_images) != len(rgb_images):
             raise ValueError("The number of images in SWIR and RGB directories do not match.")
+        if nir_path and len(nir_images) != len(rgb_images):
+            raise ValueError("The number of images in NIR and RGB directories do not match.")
 
-        if  show:
+        if show:
             cv.namedWindow('Blended')
             cv.createTrackbar('Opacity', 'Blended', 0, 100, lambda x: self.update_opacity(x, rgb_alin, swir_alin))
 
@@ -261,18 +271,25 @@ class ImageAlignment:
             swir_image_path = os.path.join(swir_path, swir_image)
             rgb_image_path = os.path.join(rgb_path, rgb_image)
 
-            
+            # Align SWIR and RGB images
             swir_alin, rgb_alin = self.align_images(swir_image_path, rgb_image_path)
 
-            # Save the aligned and rgb images
+            # Save the aligned SWIR and RGB images
             swir_aligned_output_file = os.path.join(swir_alin_output_path, swir_image)
             rgb_alin_output_file = os.path.join(rgb_alin_output_path, rgb_image)
 
             cv.imwrite(swir_aligned_output_file, swir_alin)
             cv.imwrite(rgb_alin_output_file, rgb_alin)
+
+            # Align and save NIR image if provided
+            if nir_path:
+                nir_image = nir_images[index]
+                nir_image_path = os.path.join(nir_path, nir_image)
+                nir_alin, _ = self.align_images(nir_image_path, rgb_image_path)  # Align NIR to RGB
+                nir_aligned_output_file = os.path.join(nir_alin_output_path, nir_image)
+                cv.imwrite(nir_aligned_output_file, nir_alin)
+
             pbar.update(1)
-            #if index % 100 == 0:
-            #    print(f"Processing image pair {index + 1} of {len(swir_images)}")
 
             if show:
                 opac = cv.getTrackbarPos('Opacity', 'Blended') 

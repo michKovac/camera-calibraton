@@ -20,10 +20,10 @@ def main():
     alignment.align_batch(
         args.swir,
         args.rgb,
-        args.output,
-        nir_path=args.nir,
+        nir_path=args.nir,  # Ensure this is passed correctly
+        output_path=args.output,
         show=args.show
     )
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
