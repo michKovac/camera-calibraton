@@ -18,7 +18,7 @@ def main(base_path, matrix_file_rgb, matrix_file_nir=None, start=1, end=29):
             "python", script_path,
             "--swir", swir_path,
             "--rgb", rgb_path,
-            "--homography-rgb", matrix_file_rgb,
+            "--h_swir_rgb", matrix_file_rgb,
             "--output", out_dir,
         ]
 
@@ -26,7 +26,7 @@ def main(base_path, matrix_file_rgb, matrix_file_nir=None, start=1, end=29):
         if matrix_file_nir and os.path.exists(nir_path):
             command.extend([
                 "--nir", nir_path,
-                "--homography-nir", matrix_file_nir
+                "--h_nir_rgb", matrix_file_nir
             ])
 
         # Run the command
