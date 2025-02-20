@@ -222,18 +222,35 @@ class ImageAlignment:
             rgb[top:bottom, left:right]
         )
         
-    def update_opacity(self,x, rgb_alin, swir_alin):
-        alpha = x / 100
-        beta = 1 - alpha
-        # Resize the images by half
-        rgb_alin_resized = cv.resize(rgb_alin, (rgb_alin.shape[1] // 1, rgb_alin.shape[0] // 1))
-        swir_alin_resized = cv.resize(swir_alin, (swir_alin.shape[1] //1, swir_alin.shape[0] // 1))
+    def update_opacity(self, rgb_alpha, swir_alpha, nir_alpha, rgb_alin, swir_alin, nir_alin):
+        # Resize the images to the same dimensions
+        height = max(rgb_alin.shape[0], swir_alin.shape[0], nir_alin.shape[0])
+        width = max(rgb_alin.shape[1], swir_alin.shape[1], nir_alin.shape[1])
+        
+        rgb_alin_resized = cv.resize(rgb_alin, (width, height))
+        swir_alin_resized = cv.resize(swir_alin, (width, height))
+        nir_alin_resized = cv.resize(nir_alin, (width, height))
+        
+        # Normalize alpha values to be between 0 and 1
+        rgb_alpha = rgb_alpha / 100.0
+        swir_alpha = swir_alpha / 100.0
+        nir_alpha = nir_alpha / 100.0
         
         # Blend the resized images
-        blended = cv.addWeighted(rgb_alin_resized, alpha, swir_alin_resized, beta, 0)
+        blended = cv.addWeighted(rgb_alin_resized, rgb_alpha, swir_alin_resized, swir_alpha, 0)
+        blended = cv.addWeighted(blended, 1.0, nir_alin_resized, nir_alpha, 0)  # Blend NIR image
+        
+        # Ensure the blended image is in the correct format
+        blended = np.clip(blended, 0, 255).astype(np.uint8)
+        
         cv.imshow('Blended', blended)
         
     def align_batch(self, swir_path, rgb_path, nir_path=None, output_path="aligned", homography_mat=None, show=False):
+        # Initialize opacity values
+        rgb_alpha = 100
+        swir_alpha = 100
+        nir_alpha = 100
+
         if homography_mat is None:
             homography_mat = self.homography_matrix
 
@@ -259,7 +276,9 @@ class ImageAlignment:
 
         if show:
             cv.namedWindow('Blended')
-            cv.createTrackbar('Opacity', 'Blended', 0, 100, lambda x: self.update_opacity(x, rgb_alin, swir_alin))
+            cv.createTrackbar('RGB Opacity', 'Blended', rgb_alpha, 100, lambda x: self.update_opacity(x / 100, swir_alpha / 100, nir_alpha / 100, rgb_alin, swir_alin, nir_alin))
+            cv.createTrackbar('SWIR Opacity', 'Blended', swir_alpha, 100, lambda x: self.update_opacity(rgb_alpha / 100, x / 100, nir_alpha / 100, rgb_alin, swir_alin, nir_alin))
+            cv.createTrackbar('NIR Opacity', 'Blended', nir_alpha, 100, lambda x: self.update_opacity(rgb_alpha / 100, swir_alpha / 100, x / 100, rgb_alin, swir_alin, nir_alin))
 
         index = 0
         print('Starting image alignment...')
@@ -291,9 +310,12 @@ class ImageAlignment:
 
             pbar.update(1)
 
+            # Update opacity with NIR image
             if show:
-                opac = cv.getTrackbarPos('Opacity', 'Blended') 
-                self.update_opacity(opac, rgb_alin, swir_alin)  # Initialize with the first call
+                opac_rgb = cv.getTrackbarPos('RGB Opacity', 'Blended') 
+                opac_swir = cv.getTrackbarPos('SWIR Opacity', 'Blended') 
+                opac_nir = cv.getTrackbarPos('NIR Opacity', 'Blended') 
+                self.update_opacity(opac_rgb, opac_swir, opac_nir, rgb_alin, swir_alin, nir_alin)  # Initialize with the first call
 
                 while True:
                     key = cv.waitKey(1) & 0xFF
@@ -306,8 +328,10 @@ class ImageAlignment:
                     elif key == ord('q'):  # 'q' key to quit
                         cv.destroyAllWindows()
                         exit()
-                    opac = cv.getTrackbarPos('Opacity', 'Blended')
-                    self.update_opacity(opac, rgb_alin, swir_alin)  # Update opacity on trackbar change
+                    opac_rgb = cv.getTrackbarPos('RGB Opacity', 'Blended')
+                    opac_swir = cv.getTrackbarPos('SWIR Opacity', 'Blended')
+                    opac_nir = cv.getTrackbarPos('NIR Opacity', 'Blended')
+                    self.update_opacity(opac_rgb, opac_swir, opac_nir, rgb_alin, swir_alin, nir_alin)  # Update opacity on trackbar change
             else:
                 index += 1
                 if index >= len(swir_images):
