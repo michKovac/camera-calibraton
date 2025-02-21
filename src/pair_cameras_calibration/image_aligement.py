@@ -293,20 +293,18 @@ class ImageAlignment:
             # Align SWIR and RGB images
             swir_alin, rgb_alin = self.align_images(swir_image_path, rgb_image_path)
 
-            # Save the aligned SWIR and RGB images
-            swir_aligned_output_file = os.path.join(swir_alin_output_path, swir_image)
-            rgb_alin_output_file = os.path.join(rgb_alin_output_path, rgb_image)
-
-            cv.imwrite(swir_aligned_output_file, swir_alin)
-            cv.imwrite(rgb_alin_output_file, rgb_alin)
-
-            # Align and save NIR image if provided
             if nir_path:
                 nir_image = nir_images[index]
                 nir_image_path = os.path.join(nir_path, nir_image)
-                nir_alin, _ = self.align_images(nir_image_path, rgb_image_path)  # Align NIR to RGB
+                #nir_alin, _ = self.align_images(nir_image_path, rgb_image_path)  # Align NIR to RGB
+                rgb_alin, nir_alin, swir_alin = self.align_images(swir_image_path, rgb_image_path, nir_image_path)
                 nir_aligned_output_file = os.path.join(nir_alin_output_path, nir_image)
                 cv.imwrite(nir_aligned_output_file, nir_alin)
+                
+            swir_aligned_output_file = os.path.join(swir_alin_output_path, swir_image)
+            rgb_alin_output_file = os.path.join(rgb_alin_output_path, rgb_image)
+            cv.imwrite(swir_aligned_output_file, swir_alin)
+            cv.imwrite(rgb_alin_output_file, rgb_alin)
 
             pbar.update(1)
 

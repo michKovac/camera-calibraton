@@ -60,18 +60,19 @@ Use the `undistort_collection.py` script to undistort a batch of images from mul
 
 ### Usage
 ```bash
-python undistort_collection.py --base_path <base_dataset_path> --rgb_matrix <rgb_matrix_file> --swir_matrix <swir_matrix_file> --start_range <start_range> --end_range <end_range>
+python undistort_collection.py --base_path <base_dataset_path> --rgb_matrix <rgb_matrix_file> --swir_matrix <swir_matrix_file> --nir_matrix <nir_matrix_file> --start_range <start_range> --end_range <end_range>
 ```
 
 ### Arguments
 - `--base_path`: Base path of the dataset.
 - `--rgb_matrix`: Matrix file for RGB data.
 - `--swir_matrix`: Matrix file for SWIR data.
+- `--nir_matrix`: Matrix file for NIR data.
 - `--start_range`: Start range of data directories (default: 1).
 - `--end_range`: End range of data directories (default: 20).
 
 ### Data Collection Base Directory Structure
-In the data collection base directory, there should be folders named `data1`, `data2`, `data3`, ..., `datax`. Each `data` folder should contain two subfolders: `rgb`, `swir`, and `nir`.
+In the data collection base directory, there should be folders named `data1`, `data2`, `data3`, ..., `datax`. Each `data` folder should contain three subfolders: `rgb`, `swir`, and `nir`.
 
 Example structure:
 ```
